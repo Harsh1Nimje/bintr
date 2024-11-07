@@ -1,0 +1,321 @@
+Practical 2(Design and Implementation of a product cipher using Substitution and Transposition
+ciphers in python):
+def caesar_cipher(text, shift):
+    result = []
+    for char in text:
+        if char.isalpha():
+            shift_amount = shift % 26
+            start = ord('A') if char.isupper() else ord('a')
+            result.append(chr(start + (ord(char) - start + shift_amount) % 26))
+        else:
+            result.append(char)
+    return ''.join(result)
+
+def reverse_caesar_cipher(text, shift):
+    result = []
+    for char in text:
+        if char.isalpha():
+            shift_amount = shift % 26
+            start = ord('A') if char.isupper() else ord('a')
+            result.append(chr(start + (ord(char) - start - shift_amount) % 26))
+        else:
+            result.append(char)
+    return ''.join(result)
+
+def columnar_transposition_cipher(text):
+    num_columns = len(text)
+    num_rows = len(text) // num_columns + (1 if len(text) % num_columns > 0 else 0)
+    
+    grid = ['' for _ in range(num_columns)]
+    
+    index = 0
+    for col in range(num_columns):
+        for row in range(num_rows):
+            if index < len(text):
+                grid[col] += text[index]
+                index += 1
+    
+    transposed_text = ''.join([''.join([grid[col][row] for col in range(num_columns) if row < len(grid[col])]) for row in range(num_rows)])
+    return transposed_text
+
+def reverse_columnar_transposition_cipher(text):
+    num_columns = len(text)
+    num_rows = len(text) // num_columns + (1 if len(text) % num_columns > 0 else 0)
+    
+    grid = ['' for _ in range(num_columns)]
+    
+    index = 0
+    for col in range(num_columns):
+        for row in range(num_rows):
+            if index < len(text):
+                grid[col] += text[index]
+                index += 1
+    
+    transposed_text = ''.join([''.join([grid[col][row] for col in range(num_columns) if row < len(grid[col])]) for row in range(num_rows)])
+    return transposed_text
+
+def product_cipher(plain_text, key):
+    shifted_text = caesar_cipher(plain_text, key)
+    product_cipher_text = columnar_transposition_cipher(shifted_text)
+    return product_cipher_text
+
+def decrypt_product_cipher(cipher_text, key):
+    intermediate_text = reverse_columnar_transposition_cipher(cipher_text)
+    original_plain_text = reverse_caesar_cipher(intermediate_text, key)
+    return original_plain_text
+
+def main():
+    while True:
+        print("\n--- Product Cipher Menu ---")
+        print("1. Encrypt")
+        print("2. Decrypt")
+        print("3. Exit")
+        
+        choice = input("Enter your choice (1/2/3): ")
+        
+        if choice == '1':
+            plain_text = input("Enter plain text: ").upper()
+            key = int(input("Enter key: "))
+            cipher_text = product_cipher(plain_text, key)
+            print("\nAdditive Cipher Text:", caesar_cipher(plain_text, key))
+            print("Transposition Cipher Text:", columnar_transposition_cipher(caesar_cipher(plain_text, key)))
+            print("Product Cipher:", cipher_text)
+            
+        elif choice == '2':
+            cipher_text = input("Enter cipher text: ").upper()
+            key = int(input("Enter key: "))
+            plain_text = decrypt_product_cipher(cipher_text, key)
+            print("\nOriginal Plain Text:", plain_text)
+        
+        elif choice == '3':
+            print("Exiting...")
+            break
+        
+        else:
+            print("Invalid choice. Please enter 1, 2, or 3.")
+
+if __name__ == "__main__":
+    main()
+========================xxxxxxxxxxxxxxxxxxxxxxxxxxxxx===========================xxxxxxxxxxxxxxxxxxxxx=============
+Practical 3(Playfair Cipher):
+def create_playfair_matrix(keyword):
+    matrix = []
+    alphabet = "ABCDEFGHIKLMNOPQRSTUVWXYZ"  # 'J' is omitted to fit 25 letters
+    used_chars = set()
+
+
+    # Prepare the keyword
+    keyword = ''.join([c.upper() for c in keyword if c.isalpha()]).replace('J', 'I')
+    for char in keyword:
+        if char not in used_chars:
+            used_chars.add(char)
+            matrix.append(char)
+
+
+    # Fill the matrix with the remaining letters of the alphabet
+    for char in alphabet:
+        if char not in used_chars:
+            used_chars.add(char)
+            matrix.append(char)
+
+
+    # Format the matrix into a 5x5 grid
+    matrix_2d = [matrix[i:i+5] for i in range(0, 25, 5)]
+    return matrix_2d
+
+
+def preprocess_text(text):
+    text = ''.join([c.upper() for c in text if c.isalpha()]).replace('J', 'I')
+    # Pair up the letters, inserting 'X' if needed
+    processed = []
+    i = 0
+    while i < len(text):
+        first = text[i]
+        if i + 1 < len(text):
+            second = text[i + 1]
+            if first == second:
+                processed.append(first + 'X')
+                i += 1
+            else:
+                processed.append(first + second)
+                i += 2
+        else:
+            processed.append(first + 'X')
+            i += 1
+    return processed
+
+
+def find_position(matrix, char):
+    for row in range(5):
+        if char in matrix[row]:
+            return (row, matrix[row].index(char))
+    return None
+
+
+def playfair_encrypt_decrypt(text, keyword, mode='encrypt'):
+    matrix = create_playfair_matrix(keyword)
+    processed_text = preprocess_text(text)
+    result = []
+
+
+    for pair in processed_text:
+        row1, col1 = find_position(matrix, pair[0])
+        row2, col2 = find_position(matrix, pair[1])
+
+
+        if row1 == row2:
+            if mode == 'encrypt':
+                result.append(matrix[row1][(col1 + 1) % 5])
+                result.append(matrix[row2][(col2 + 1) % 5])
+            else:
+                result.append(matrix[row1][(col1 - 1) % 5])
+                result.append(matrix[row2][(col2 - 1) % 5])
+        elif col1 == col2:
+            if mode == 'encrypt':
+                result.append(matrix[(row1 + 1) % 5][col1])
+                result.append(matrix[(row2 + 1) % 5][col2])
+            else:
+                result.append(matrix[(row1 - 1) % 5][col1])
+                result.append(matrix[(row2 - 1) % 5][col2])
+        else:
+            result.append(matrix[row1][col2])
+            result.append(matrix[row2][col1])
+
+
+    return ''.join(result)
+
+
+def main():
+    print("Welcome to the Playfair Cipher!")
+   
+    keyword = input("Enter the keyword: ").strip()
+    if not keyword:
+        print("Keyword cannot be empty.")
+        return
+
+
+    mode = input("Choose mode (encrypt/decrypt): ").strip().lower()
+    if mode not in ['encrypt', 'decrypt']:
+        print("Invalid mode. Choose 'encrypt' or 'decrypt'.")
+        return
+
+
+    text = input("Enter the text: ").strip()
+    if not text:
+        print("Text cannot be empty.")
+        return
+
+
+    result = playfair_encrypt_decrypt(text, keyword, mode)
+   
+    print(f"\n{'Encrypted' if mode == 'encrypt' else 'Decrypted'} text:")
+    print(result)
+
+
+if __name__ == "__main__":
+    main()
+========================xxxxxxxxxxxxxxxxxxxxxxxxxxxxx===========================xxxxxxxxxxxxxxxxxxxxx=============
+
+4) Encrypt long messages using various modes of operation using AES and DES
+
+- https://cryptographyacademy.com/modes-of-operation/protocol/
+
+========================xxxxxxxxxxxxxxxxxxxxxxxxxxxxx===========================xxxxxxxxxxxxxxxxxxxxx=============
+
+7) Execute network reconnaissance commands
+
+**Command Prompt (CMD)**:
+
+- ping: Checks if a host is reachable and measures latency.
+- tracert: Traces the path to a destination, showing each hop along the way.
+- nslookup: Retrieves DNS records for a domain.
+- ipconfig: Displays network configuration, including IP addresses, gateways, and DNS servers.
+- netstat: Shows active connections, listening ports, and statistics.
+- arp: Displays the ARP cache, mapping IP addresses to MAC addresses.
+- net view: Lists computers on a network.
+- nbtstat: Provides NetBIOS over TCP/IP details.
+
+========================xxxxxxxxxxxxxxxxxxxxxxxxxxxxx===========================xxxxxxxxxxxxxxxxxxxxx=============
+
+9) NMAP Tool. Use it to scan ports, perform OS fingerprinting, ping scan , tcp port scan, udp port scan
+
+Download nMAP:
+https://nmap.org/dist/nmap-7.95-setup.exe
+Open .exe
+I agree
+Next
+Install
+I agree
+Install
+Next 
+Finish
+
+Open nmap
+
+Set target as 127.0.0.1
+Intense scan + UDP
+========================xxxxxxxxxxxxxxxxxxxxxxxxxxxxx===========================xxxxxxxxxxxxxxxxxxxxx=============
+10) Use Nessus tool to scan network for vulnerabilities
+
+Download nessus:
+https://www.tenable.com/downloads/api/v1/public/pages/nessus/downloads/24316/download?i_agree_to_tenable_license_agreement=true
+
+Open Nessus, it will open in the browser at some address like https://localhost:8834/
+
+Register for Nessus Essentials, put name and last name and get email from temp-mail.org
+Click register then put username and password of your choice and click next
+
+Go to new scan ----> Basic scan ----> Target: 192.168.1.1 ----> Save
+Then click on Run button
+
+========================xxxxxxxxxxxxxxxxxxxxxxxxxxxxx===========================xxxxxxxxxxxxxxxxxxxxx=============
+11) GPG
+
+Download GPG from link below
+files.gpg4win.org/gpg4win-4.3.1.exe
+
+Run Kleopatra from start menu
+
+Create key pair with name email and passphrase
+
+Create a new text file and save it somewhere
+
+Click on sign/encrypt button in kleopatra
+
+Click on the text file and encrypt it using a passphrase
+
+A new file will be generated
+
+Click on decrypt file button in kleopatra and choose the file that was generated
+========================xxxxxxxxxxxxxxxxxxxxxxxxxxxxx===========================xxxxxxxxxxxxxxxxxxxxx=============
+12) Wireshark
+
+Download wireshark from
+files02.tchspt.com/down/Wireshark-4.4.1-x64.exe
+    1) Open Wireshark:
+        After installation, launch Wireshark.
+    2) Select the Network Adapter:
+        On the main screen, you’ll see a list of network adapters (e.g., Ethernet, Wi-Fi).
+        Choose the adapter that connects you to the network you want to capture packets from.
+    3) Enable Non-Promiscuous Mode:
+        Go to Capture in the top menu, then select Options.
+        In the Capture Options window, locate your selected network adapter.
+        Uncheck the Promiscuous Mode box for that adapter. This setting ensures that Wireshark only captures packets addressed to your machine.
+        Click Start to begin capturing packets in non-promiscuous mode.
+    Start and Stop Capture:
+        Click the Shark Fin (Capture) button on the top left to begin capturing packets.
+        To stop capturing, click the Red Square (Stop) button next to it.
+    4) Save Captured Packets:
+        Click on the Save button (or go to File > Save As) to save the captured data in a .pcapng file for future analysis.
+     5) Applying Filters to Display Only Specific Traffic (e.g., Google.com)
+To filter packets, follow these steps:
+        In the Display Filter box at the top of the Wireshark window, enter the following:
+ip.addr == 8.8.8.0/24 || ip.addr == 172.217.0.0/16 || ip.addr == 142.250.0.0/16
+Press Enter to apply the filter, showing only packets to and from Google’s IP ranges.
+Practical 7(Network reconnaissance tool)
+1. Basic Lookup- nslookup www.google.com
+2.Reverse Lookup- nslookup 
+3. Specifying a DNS Server- nslookup www.google.com 8.8.8.8
+4. Querying MX Records- nslookup -type=MX google.com
+5. Querying NS Records- nslookup -type=NS google.com
+6. Querying TXT Records- 
