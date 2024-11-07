@@ -234,7 +234,13 @@ if __name__ == "__main__":
 - arp: Displays the ARP cache, mapping IP addresses to MAC addresses.
 - net view: Lists computers on a network.
 - nbtstat: Provides NetBIOS over TCP/IP details.
-
+Practical 7(Network reconnaissance tool)
+1. Basic Lookup- nslookup www.google.com
+2.Reverse Lookup- nslookup 
+3. Specifying a DNS Server- nslookup www.google.com 8.8.8.8
+4. Querying MX Records- nslookup -type=MX google.com
+5. Querying NS Records- nslookup -type=NS google.com
+6. Querying TXT Records- 
 ========================xxxxxxxxxxxxxxxxxxxxxxxxxxxxx===========================xxxxxxxxxxxxxxxxxxxxx=============
 
 9) NMAP Tool. Use it to scan ports, perform OS fingerprinting, ping scan , tcp port scan, udp port scan
@@ -312,10 +318,3 @@ To filter packets, follow these steps:
         In the Display Filter box at the top of the Wireshark window, enter the following:
 ip.addr == 8.8.8.0/24 || ip.addr == 172.217.0.0/16 || ip.addr == 142.250.0.0/16
 Press Enter to apply the filter, showing only packets to and from Google’s IP ranges.
-Practical 7(Network reconnaissance tool)
-1. Basic Lookup- nslookup www.google.com
-2.Reverse Lookup- nslookup 
-3. Specifying a DNS Server- nslookup www.google.com 8.8.8.8
-4. Querying MX Records- nslookup -type=MX google.com
-5. Querying NS Records- nslookup -type=NS google.com
-6. Querying TXT Records- 
